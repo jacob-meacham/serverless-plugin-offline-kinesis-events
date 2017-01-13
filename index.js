@@ -9,10 +9,9 @@ const BB = require('bluebird');
  * @param stats
  */
 function getRunnableLambda(slsWebpack, stats, functionName) {
-    const handler = slsWebpack.loadHandler(stats, functionName);
-    const context = slsWebpack.getContext(functionName);
-
     return (event) => {
+        const handler = slsWebpack.loadHandler(stats, functionName, true);
+        const context = slsWebpack.getContext(functionName);
         return new BB(
             (resolve, reject) => handler(
                 event,
