@@ -64,25 +64,29 @@ class ServerlessOfflineKinesisEvents {
     return registry
   }
 
-  static async _runLambdas(kinesis, registry, streamIterators) {
-    winston.debug(`Polling Kinesis streams: ${JSON.stringify(_.keys(registry))}`)
+  static async _repollStreams(kinesis, streamIterators) {
+    winston.debug(`Polling Kinesis streams: ${JSON.stringify(_.keys(streamIterators))}`)
+    for (const name of _.keys(streamIterators)) {
+      if (streamIterators[name] === null) {
+        winston.warn(`Iterator for stream '${name}' + is closed`)
+      }
+    }
     // Get the new values for each stream
     // name -> [fetch result]
-    const recordsResults = await BB.props(
+    return BB.props(
       _.mapValues(
         streamIterators,
         iter => kinesis.getRecords({
           ShardIterator: iter,
           Limit: 100
         }).promise()))
+  }
 
-    // Wait for the functions to execute
-    await BB.all(_.chain(recordsResults)
+  static async _runLambdas(streamResults, registry) {
+          // Wait for the functions to execute
+    await BB.all(_.chain(streamResults)
       .entries()
       .flatMap(([name, result]) => {
-        if (streamIterators[name] === null) {
-          winston.warn(`Iterator for stream '${name}' + is closed`)
-        }
         winston.debug(`Stream '${name}' returned ${result.Records.length} records`)
         // Parse the records
         const records = _.map(result.Records, r => JSON.parse(r.Data.toString()))
@@ -90,8 +94,6 @@ class ServerlessOfflineKinesisEvents {
         return registry[name].map(f => f({ Records: records }))
       })
       .value())
-    // Update the stream iterators and return
-    return _.mapValues(recordsResults, result => result.NextShardIterator)
   }
 
   async runWatcher() {
@@ -133,8 +135,10 @@ class ServerlessOfflineKinesisEvents {
     let consecutiveErrors = 0
     while (true) { // eslint-disable-line no-constant-condition
       winston.debug(`Polling Kinesis streams: ${JSON.stringify(_.keys(registry))}`)
+      // Repoll the streams
+      const streamResults = await ServerlessOfflineKinesisEvents._repollStreams(kinesis, streamIterators) // eslint-disable-line
       try {
-        streamIterators = await ServerlessOfflineKinesisEvents._runLambdas(kinesis, registry, streamIterators) // eslint-disable-line
+        await ServerlessOfflineKinesisEvents._runLambdas(streamResults, registry) // eslint-disable-line
       } catch (err) {
         consecutiveErrors += 1
         if (consecutiveErrors > MAX_CONSECUTIVE_ERRORS) {
@@ -142,6 +146,9 @@ class ServerlessOfflineKinesisEvents {
           throw err
         }
         winston.error(`Failed to run Lambdas with error ${err.stack}. Continuing`)
+      } finally {
+        // Update the stream iterators
+        streamIterators = _.mapValues(streamResults, result => result.NextShardIterator)
       }
 
       // Wait a bit
