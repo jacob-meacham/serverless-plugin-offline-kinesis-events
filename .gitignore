@@ -7,3 +7,7 @@ node_modules/
 
 # Build artifact
 build/
+.coverage
+
+# OS
+.DS_Store
