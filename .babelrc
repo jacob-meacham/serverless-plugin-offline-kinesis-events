@@ -1,10 +1,23 @@
 {
+  "presets": [
+    ["env", {
+      "targets": {
+        "node": 7.0
+      },
+      "useBuiltIns": true
+    }]
+  ],
   "plugins": [
     "transform-runtime",
-    "transform-es2015-template-literals",
-    "transform-async-to-generator"
+    ["transform-object-rest-spread", {
+      "useBuiltIns": true
+    }],
+    "espower",
+    "add-module-exports"
   ],
-  "presets": [
-    "es2015"
-  ]
+  "env": {
+    "development": {
+      "sourceMaps": "inline"
+    }
+  }
 }
