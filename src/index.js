@@ -83,7 +83,7 @@ class ServerlessOfflineKinesisEvents {
   }
 
   static async _runLambdas(streamResults, registry) {
-          // Wait for the functions to execute
+    // Wait for the functions to execute
     await BB.all(_.chain(streamResults)
       .entries()
       .flatMap(([name, result]) => {
