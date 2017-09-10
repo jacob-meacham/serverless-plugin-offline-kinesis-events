@@ -1,0 +1,95 @@
+# Serverless configuration for the geotemporal service
+# For full config options, check the docs:
+#    docs.serverless.com
+
+# Pin the serverless version
+frameworkVersion: "=1.17.0"
+
+service: here-one-geotemporal
+
+# Plugins
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-offline-kinesis-events
+  - serverless-plugin-bind-deployment-id
+  - serverless-plugin-git-variables
+  - serverless-plugin-cloudwatch-sumologic
+  - serverless-deploy-environment
+  - serverless-plugin-aws-alerts
+
+custom:
+  # See: https://github.com/elastic-coders/serverless-webpack
+  webpack: webpack.config.js
+  webpackIncludeModules: true
+  shipLogs:
+    collectorUrl: ${self:deployVariables.collector}
+    filterPattern: ""
+    function:
+      name: ${self:provider.stage}-${self:service}-cloudwatch-sumologic
+      description: Sync logs from cloudwatch to sumologic. COMMIT ${git:sha1}, BRANCH ${git:branch}
+      memorySize: 128
+  defaults:
+    log_level: INFO
+    stage: dev
+  deploy:
+    variables: ${file(config/variables.yml)}
+    environments: ${file(config/deploy.yml)}
+
+  offlineKinesisEvents:
+    host: ${self:deployEnvironment.LAMBDA_REGION}
+    port: ${self:deployEnvironment.LAMBDA_KINESIS_PORT}
+    region: ${self:deployEnvironment.LAMBDA_REGION}
+    # How often to poll the Kinesis stream
+    intervalMillis: 5000
+
+  notifications:
+    - protocol: https
+      endpoint: https://events.pagerduty.com/exampleIntegration
+  alerts:
+    stages:
+      - production
+      - staging
+    topics:
+      ok:
+        topic: ${self:provider.stage}-${self:service}-alerts-ok
+        notifications: ${self:custom.notifications}
+      alarm:
+        topic: ${self:provider.stage}-${self:service}-alerts-alarm
+        notifications: ${self:custom.notifications}
+      insufficientData: ${self:provider.stage}-${self:service}-alerts-insufficientData
+    definitions:
+      functionDuration:
+        evaluationPeriods: 5
+        threshold: 1000
+      functionErrors:
+        evaluationPeriods: 2
+    global:
+      - functionThrottles
+      - functionErrors
+    function:
+      - functionDuration
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  stage: ${opt:stage, self:custom.defaults.stage}
+  region: us-west-2
+  domain: ${self:deployVariables.domain}
+  role: ${self:deployVariables.role}
+
+functions:
+  putEvents:
+    # This is only triggered by puts to the event log
+    private: true
+    name: ${self:provider.stage}-${self:service}-put-events
+    description: Example of put events COMMIT ${git:sha1}, BRANCH ${git:branch}
+    handler: handlers.putEvents
+    memorySize: 128
+    timeout: 10
+    events:
+      - stream:
+          type: kinesis
+          arn: ${self:deployVariables.streamArn}
+          batchSize: 100
+          startingPosition: LATEST

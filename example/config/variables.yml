@@ -1,0 +1,9 @@
+---
+dev:
+  streamArn: 'arn:aws:kinesis:us-west-2:example:stream/offline-example'
+staging:
+  streamArn:
+    'Fn::ImportValue': 'some-other-service:${self:provider.stage}:StreamARN'
+production:
+  streamArn:
+    'Fn::ImportValue': 'some-other-service:${self:provider.stage}:StreamARN'

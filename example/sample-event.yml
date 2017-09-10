@@ -1,0 +1,8 @@
+# sample_event.yml
+# Sample event from the stream
+eventID: shardId-000000000000:49545115243490985018280067714973144582180062593244200961
+eventVersion: 1.0
+lat: 0.0
+lon: 0.0
+minute_of_day: 1
+event_id: 31

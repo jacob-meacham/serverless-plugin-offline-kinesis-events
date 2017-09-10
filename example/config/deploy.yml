@@ -1,0 +1,11 @@
+---
+default:
+  LAMBDA_LOG_LEVEL: info
+  LAMBDA_REGION: ${self:provider.region}
+  LAMBDA_KINESIS_PORT: 4567
+
+dev:
+  # Kinesis config
+  LAMBDA_KINESIS_STREAM_NAME: usage-dev
+  LAMBDA_KINESIS_PORT: 4567
+  LAMBDA_KINESIS_HOST: localhost
