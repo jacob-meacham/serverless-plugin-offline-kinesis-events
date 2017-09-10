@@ -1,13 +1,17 @@
-# JetBrains
+# IDEs
 .idea/
+.vscode
 
 # NPM
 node_modules/
 .npmdebug
+npm-debug.log
 
 # Build artifact
-build/
 .coverage
+coverage/
+.nyc_output
+lib/
 
 # OS
 .DS_Store
