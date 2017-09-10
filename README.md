@@ -67,3 +67,11 @@ And you'll see your lambda fire!
 
 ## Usage in the real world
 See the example/ folder for how we've used this plugin successfully in the real world.
+
+## Release Notes
+* 1.0.0 - Initial release
+
+## Contributors
+* [Matt Sills](https://github.com/mattsills)
+* [Jacob Meacham](https://github.com/jacob-meacham)
+
