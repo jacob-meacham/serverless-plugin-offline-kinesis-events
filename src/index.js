@@ -8,8 +8,8 @@ import winston from 'winston'
  * @param stats
  */
 function getRunnableLambda(slsWebpack, stats, functionName) {
+  const handler = slsWebpack.loadHandler(stats, functionName, true)
   return (event) => {
-    const handler = slsWebpack.loadHandler(stats, functionName, true)
     const context = slsWebpack.getContext(functionName)
     return new BB(
       (resolve, reject) => handler(
@@ -32,6 +32,7 @@ class ServerlessOfflineKinesisEvents {
   constructor(serverless, options) {
     this.serverless = serverless
     this.options = options
+
     // Only meaningful for AWS
     this.provider = 'aws'
 
@@ -40,7 +41,7 @@ class ServerlessOfflineKinesisEvents {
     this.commands = {}
     // Run automatically as part of the deploy
     this.hooks = {
-      'after:offline:start': () => BB.bind(this).then(this.runWatcher)
+      'before:offline:start': () => BB.bind(this).then(this.runWatcher)
     }
   }
 

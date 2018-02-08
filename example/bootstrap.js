@@ -11,7 +11,7 @@ async function ensureStream() {
     endpoint: `${process.env.LAMBDA_KINESIS_HOST}:${process.env.LAMBDA_KINESIS_PORT}`,
     region: process.env.LAMBDA_REGION,
     apiVersion: '2013-12-02',
-    sslEnabled: false,
+    sslEnabled: false
   })
   try {
     // Create the stream
