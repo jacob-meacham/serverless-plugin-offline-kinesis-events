@@ -1,6 +1,6 @@
 {
   "name": "serverless-plugin-offline-kinesis-events",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Plugin that integrates Kinesis events with offline Lambdas",
   "main": "lib/index.js",
   "files": [
