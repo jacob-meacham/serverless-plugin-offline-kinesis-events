@@ -16,6 +16,7 @@
     "serverless applications"
   ],
   "dependencies": {
+    "aws-sdk": "2.7.21",
     "babel-polyfill": "6.23.0",
     "elasticsearch": "12.1.3",
     "flat": "2.0.1",
@@ -45,12 +46,12 @@
     "eslint-plugin-react": "6.10.0",
     "json-loader": "0.5.4",
     "serverless": "1.17.0",
-    "serverless-deploy-environment": "1.0.0",
+    "serverless-plugin-deploy-environment": "1.0.3",
     "serverless-offline": "3.10.2",
-    "serverless-offline-kinesis-events": "file:../",
+    "serverless-plugin-offline-kinesis-events": "file:../",
     "serverless-plugin-aws-alerts": "1.0.0",
     "serverless-plugin-bind-deployment-id": "1.0.1",
-    "serverless-plugin-cloudwatch-sumologic": "git://github.com/DopplerLabs/serverless-plugin-cloudwatch-sumologic.git#008237a45288fb87b60eac84c13245d67888608d",
+    "serverless-plugin-cloudwatch-sumologic": "git://github.com/jacob-meacham/serverless-plugin-cloudwatch-sumologic.git#008237a45288fb87b60eac84c13245d67888608d",
     "serverless-plugin-git-variables": "2.0.0",
     "serverless-webpack": "1.0.0-rc.4",
     "webpack": "1.14.0",
@@ -58,8 +59,8 @@
   },
   "scripts": {
     "build": "eslint . && SLS_DEBUG=* NODE_ENV=production sls deploy --stage dev --noDeploy",
-    "dev:bootstrap": "sls runWithEnvironment --command './node_modules/.bin/babel-node ./scripts/bootstrap.js' --stage 'dev'",
-    "dev:putToStream": "sls runWithEnvironment --command './node_modules/.bin/babel-node test/scripts/put_records.js' --stage 'dev'",
+    "dev:bootstrap": "sls runWithEnvironment --command './node_modules/.bin/babel-node ./bootstrap.js' --stage 'dev'",
+    "dev:putToStream": "sls runWithEnvironment --command './node_modules/.bin/babel-node ./put_records.js sample-event.yml' --stage 'dev'",
     "dev": "npm run dev:bootstrap && SLS_DEBUG=* NODE_ENV=development node --inspect ./node_modules/.bin/sls offline --port 3001 --location .webpack --stage dev",
     "deploy:staging": "NODE_ENV=production SLS_DEBUG=* sls deploy --stage staging --verbose",
     "deploy:production": "NODE_ENV=production SLS_DEBUG=* sls deploy --stage production --verbose"

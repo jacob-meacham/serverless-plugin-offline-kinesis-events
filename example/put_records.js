@@ -13,7 +13,6 @@ if (process.argv.length < 3) {
   process.exit(1)
 }
 
-// const kinesis = 1
 const kinesis = new AWS.Kinesis({
   endpoint: `${process.env.LAMBDA_KINESIS_HOST}:${process.env.LAMBDA_KINESIS_PORT}`,
   region: process.env.LAMBDA_REGION,

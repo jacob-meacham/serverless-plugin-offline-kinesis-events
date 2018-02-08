@@ -69,6 +69,7 @@ And you'll see your lambda fire!
 See the example/ folder for how we've used this plugin successfully in the real world.
 
 ## Release Notes
+* 1.0.1 - Fix example, fix compatibility issue with serverless-offline
 * 1.0.0 - Initial release
 
 ## Contributors
