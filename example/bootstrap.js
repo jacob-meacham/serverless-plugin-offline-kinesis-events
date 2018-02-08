@@ -6,11 +6,12 @@ import * as AWS from 'aws-sdk'
 import winston from 'winston'
 
 async function ensureStream() {
+  winston.info(`Connecting to ${process.env.LAMBDA_KINESIS_HOST}:${process.env.LAMBDA_KINESIS_PORT}...`)
   const kinesis = new AWS.Kinesis({
     endpoint: `${process.env.LAMBDA_KINESIS_HOST}:${process.env.LAMBDA_KINESIS_PORT}`,
     region: process.env.LAMBDA_REGION,
     apiVersion: '2013-12-02',
-    sslEnabled: false
+    sslEnabled: false,
   })
   try {
     // Create the stream
