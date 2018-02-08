@@ -11,24 +11,25 @@ service: here-one-geotemporal
 plugins:
   - serverless-webpack
   - serverless-offline
-  - serverless-offline-kinesis-events
+  - serverless-plugin-offline-kinesis-events
   - serverless-plugin-bind-deployment-id
   - serverless-plugin-git-variables
   - serverless-plugin-cloudwatch-sumologic
-  - serverless-deploy-environment
+  - serverless-plugin-deploy-environment
   - serverless-plugin-aws-alerts
 
 custom:
   # See: https://github.com/elastic-coders/serverless-webpack
   webpack: webpack.config.js
   webpackIncludeModules: true
-  shipLogs:
-    collectorUrl: ${self:deployVariables.collector}
-    filterPattern: ""
-    function:
-      name: ${self:provider.stage}-${self:service}-cloudwatch-sumologic
-      description: Sync logs from cloudwatch to sumologic. COMMIT ${git:sha1}, BRANCH ${git:branch}
-      memorySize: 128
+  # If you want to ship logs to sumologic
+  # shipLogs:
+  #   collectorUrl: ${self:deployVariables.collector}
+  #   filterPattern: ""
+  #   function:
+  #     name: ${self:provider.stage}-${self:service}-cloudwatch-sumologic
+  #     description: Sync logs from cloudwatch to sumologic. COMMIT ${git:sha1}, BRANCH ${git:branch}
+  #     memorySize: 128
   defaults:
     log_level: INFO
     stage: dev
@@ -37,7 +38,7 @@ custom:
     environments: ${file(config/deploy.yml)}
 
   offlineKinesisEvents:
-    host: ${self:deployEnvironment.LAMBDA_REGION}
+    host: ${self:deployEnvironment.LAMBDA_KINESIS_HOST}
     port: ${self:deployEnvironment.LAMBDA_KINESIS_PORT}
     region: ${self:deployEnvironment.LAMBDA_REGION}
     # How often to poll the Kinesis stream
@@ -75,8 +76,9 @@ provider:
   runtime: nodejs6.10
   stage: ${opt:stage, self:custom.defaults.stage}
   region: us-west-2
-  domain: ${self:deployVariables.domain}
-  role: ${self:deployVariables.role}
+  # In normal use, these would be set in config/deploy.yml
+  # domain: ${self:deployVariables.domain}
+  # role: ${self:deployVariables.role}
 
 functions:
   putEvents:
