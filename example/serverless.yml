@@ -9,7 +9,6 @@ service: here-one-geotemporal
 
 # Plugins
 plugins:
-  - serverless-webpack
   - serverless-offline
   - serverless-plugin-offline-kinesis-events
   - serverless-plugin-bind-deployment-id
