@@ -61,7 +61,8 @@
     "build": "eslint . && SLS_DEBUG=* NODE_ENV=production sls deploy --stage dev --noDeploy",
     "dev:bootstrap": "sls runWithEnvironment --command './node_modules/.bin/babel-node ./bootstrap.js' --stage 'dev'",
     "dev:putToStream": "sls runWithEnvironment --command './node_modules/.bin/babel-node ./put_records.js sample-event.yml' --stage 'dev'",
-    "dev": "npm run dev:bootstrap && SLS_DEBUG=* NODE_ENV=development node --inspect ./node_modules/.bin/sls offline --port 3001 --location .webpack --stage dev",
+    "dev": "npm run dev:bootstrap && SLS_DEBUG=* NODE_ENV=development node --inspect ./node_modules/.bin/sls offline --port 3001 --stage dev",
+    "dev:webpack": "npm run dev:bootstrap && SLS_DEBUG=* NODE_ENV=development node --inspect ./node_modules/.bin/sls offline --port 3001 --location .webpack --stage dev",
     "deploy:staging": "NODE_ENV=production SLS_DEBUG=* sls deploy --stage staging --verbose",
     "deploy:production": "NODE_ENV=production SLS_DEBUG=* sls deploy --stage production --verbose"
   }

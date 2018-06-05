@@ -2,28 +2,53 @@ import * as _ from 'lodash'
 import * as AWS from 'aws-sdk'
 import BB from 'bluebird'
 import winston from 'winston'
+import path from 'path'
+
+function wrapHandler(handler, context) {
+  return (event) => {
+    return new Promise((resolve, reject) => handler(event, context, (err, res) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(res)
+      }
+    }))
+  }
+}
 
 /**
  * Based on ServerlessWebpack.run
  * @param stats
  */
-function getRunnableLambda(slsWebpack, stats, functionName) {
+function getWebpackRunnableLambda(slsWebpack, stats, functionName) {
   const handler = slsWebpack.loadHandler(stats, functionName, true)
-  return (event) => {
-    const context = slsWebpack.getContext(functionName)
-    return new BB(
-      (resolve, reject) => handler(
-        event,
-        context,
-        (err, res) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(res)
-          }
-        }
-      ))
+  const context = slsWebpack.getContext(functionName)
+  return wrapHandler(handler, context)
+}
+
+function setEnvironmentVars(serverless, functionName) {
+  const providerEnvVars = serverless.service.provider.environment || {}
+  const functionEnvVars = serverless.service.functions[functionName].environment || {}
+
+  Object.assign(process.env, providerEnvVars, functionEnvVars)
+}
+
+function getRunnableLambda(serverless, functionName) {
+  const handlerParts = serverless.service.functions[functionName].handler.split('.')
+
+  // TODO: Make this smarter
+  const handlerFilePath = path.resolve(process.cwd(), `${handlerParts[0]}.js`)
+
+  setEnvironmentVars(serverless, functionName)
+
+  const module = require(handlerFilePath)
+  const functionObjectPath = handlerParts.slice(1)
+  let handler = module
+  for (let p of functionObjectPath) {
+    handler = handler[p]
   }
+
+  return wrapHandler(handler, { })
 }
 
 const MAX_CONSECUTIVE_ERRORS = 10
@@ -45,11 +70,17 @@ class ServerlessOfflineKinesisEvents {
     }
   }
 
+  /**
+   * Based on ServerlessWebpack.run
+   * @param stats
+   */
   static async createRegistry(serverless) {
     // Get a handle on the compiled functions
-    // TODO(msills): Do not rely on this plugin.
     const slsWebpack = _.find(serverless.pluginManager.plugins, p => p.constructor.name === 'ServerlessWebpack')
-    const compileStats = await slsWebpack.compile()
+    let compileStats = null
+    if (slsWebpack) {
+      compileStats = await slsWebpack.compile()
+    }
 
     const registry = {}
     for (const functionName of _.keys(serverless.service.functions)) {
@@ -59,7 +90,11 @@ class ServerlessOfflineKinesisEvents {
       for (const s of streamEvents) {
         const streamName = s.stream.arn.split('/').slice(-1)[0]
         registry[streamName] = registry[streamName] || []
-        registry[streamName].push(getRunnableLambda(slsWebpack, compileStats, functionName))
+        if (slsWebpack) {
+          registry[streamName].push(getWebpackRunnableLambda(slsWebpack, compileStats, functionName))
+        } else {
+          registry[streamName].push(getRunnableLambda(serverless, functionName))
+        }
       }
     }
     return registry
