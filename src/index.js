@@ -169,7 +169,7 @@ class ServerlessOfflineKinesisEvents {
         .value())
 
     let consecutiveErrors = 0
-    while (true) { // eslint-disable-line no-constant-condition
+    const poll = async () => {
       winston.debug(`Polling Kinesis streams: ${JSON.stringify(_.keys(registry))}`)
       // Repoll the streams
       const streamResults = await ServerlessOfflineKinesisEvents._repollStreams(kinesis, streamIterators) // eslint-disable-line
@@ -187,9 +187,11 @@ class ServerlessOfflineKinesisEvents {
         streamIterators = _.mapValues(streamResults, result => result.NextShardIterator)
       }
 
-      // Wait a bit
-      await BB.delay(config.intervalMillis) // eslint-disable-line no-await-in-loop
+      // Only set the timeout if max errors hasn't bee hit
+      setTimeout(poll, config.intervalMillis)
     }
+
+    setTimeout(poll, config.intervalMillis)
   }
 }
 
